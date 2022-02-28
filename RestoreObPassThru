@@ -1,0 +1,22 @@
+invoke-Command -ComputerName LON-DC1 -ScriptBlock {
+  $RecycleBin = Get-ADOptionalFeature 'Recycle Bin Feature'
+    if ($RecycleBin.EnabledScopes.Count -eq 0) {
+        Enable-ADOptionalFeature 'Recycle Bin Feature' -Scope ForestOrConfigurationSet -Target adatum.com -confirm:$false
+          }
+          }  
+
+Invoke-Command -ComputerName LON-DC1 -ScriptBlock {  
+  Get-ADUser -Filter * -Properties Department | Where-Object {$_.Department -in @('Sales','Marketing','Managers')} | Get-Random -Count 10 | Remove-ADUser -Confirm:$false
+  }  
+
+  Search-ADAccount -AccountDisabled | 
+  Out-GridView -Title 'Who should be enabled?' -OutputMode Multiple | Enable-ADAccount -WhatIf
+
+  Get-ADObject -LDAPFilter:"(msDS-LastKnownRDN=*)" -IncludeDeletedObjects | Where-Object {$_.Deleted -eq $true} | Out-gridview
+
+  Get-ADObject -filter {Deleted -eq $true -and ObjectClass -eq "user"} -includeDeletedObjects|   # This command finds deleted objects        
+  Out-GridView -Title 'Who Should Be Restored?' -PassThru |                                      # This command produces a menu to select who should be restored
+  Restore-ADObject                                                                               # This command restores the user
+
+
+  
